@@ -10,8 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@charcoal-ui/icons": "^5.1.0",
+    "@charcoal-ui/react": "^5.1.0",
+    "@charcoal-ui/styled": "^5.1.0",
+    "@charcoal-ui/theme": "^5.1.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "styled-components": "^6.1.19"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.10",
@@ -20,6 +25,7 @@
     "@types/node": "^24.0.15",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@types/styled-components": "^5.1.36",
     "@vitejs/plugin-react": "^4.7.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.5",

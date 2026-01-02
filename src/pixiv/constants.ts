@@ -1,0 +1,1 @@
+export const DEFAULT_BOOKMARKS_PER_PAGE = 48;

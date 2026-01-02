@@ -5,6 +5,8 @@ export default defineManifest({
   manifest_version: 3,
   name: pkg.name,
   version: pkg.version,
+  description: pkg.description,
+  incognito: 'split',
   icons: {
     48: 'public/logo.png',
   },
@@ -12,13 +14,23 @@ export default defineManifest({
     default_icon: {
       48: 'public/logo.png',
     },
+    default_title: 'pixiv Bookmark Helper',
     default_popup: 'src/popup/index.html',
   },
-  permissions: ['contentSettings'],
-  content_scripts: [
-    {
-      js: ['src/content/main.tsx'],
-      matches: ['https://*/*'],
+  background: {
+    service_worker: 'src/background/main.ts',
+    type: 'module',
+  },
+  permissions: ['tabs', 'storage'],
+  host_permissions: ['https://www.pixiv.net/*'],
+  content_scripts: [],
+  commands: {
+    'jump-random-bookmark': {
+      suggested_key: {
+        default: 'Ctrl+Shift+B',
+        mac: 'Ctrl+Shift+B',
+      },
+      description: 'Jump to a random Pixiv bookmark',
     },
-  ],
+  },
 });

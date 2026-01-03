@@ -13,6 +13,7 @@ import { getSessionUser, setSessionUser } from '@/storage/sessionUser';
 
 const LOG_PREFIX = '[pixiv Bookmark Helper]';
 const RECENT_HISTORY_LIMIT = 10;
+const BADGE_TIMEOUT_MS = 1500;
 
 interface ResolveUserIdResponse {
   ok: boolean;
@@ -52,6 +53,35 @@ const navigateToWork = async (tabId: number | undefined, workId: string) => {
   }
   await createTab(url);
 };
+
+const showBadge = (text: string, bgColor?: string) =>
+  new Promise<void>((resolve, reject) => {
+    chrome.action.setBadgeText({ text }, () => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        reject(new Error(err.message));
+        return;
+      }
+      if (!bgColor) {
+        setTimeout(() => {
+          chrome.action.setBadgeText({ text: '' });
+        }, BADGE_TIMEOUT_MS);
+        resolve();
+        return;
+      }
+      chrome.action.setBadgeBackgroundColor({ color: bgColor }, () => {
+        const err2 = chrome.runtime.lastError;
+        if (err2) {
+          reject(new Error(err2.message));
+          return;
+        }
+        setTimeout(() => {
+          chrome.action.setBadgeText({ text: '' });
+        }, BADGE_TIMEOUT_MS);
+        resolve();
+      });
+    });
+  });
 
 const extractUserId = (url?: string) =>
   url?.match(/pixiv\.net\/users\/(\d+)/)?.[1] ?? null;
@@ -161,6 +191,7 @@ const handleJumpRequest = async () => {
 
   const workId = await fetchRandomWorkId();
   await navigateToWork(tab.id, workId);
+  await showBadge('🚀');
 };
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

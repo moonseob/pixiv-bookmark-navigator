@@ -22,7 +22,7 @@ export default function ProfileCard({
   return (
     <Container onClick={onRecheck}>
       <AvatarWrapper>
-        <img src={profile?.image ?? ''} alt='' />
+        <img src={profile?.image} alt='' />
       </AvatarWrapper>
 
       <div style={{ minWidth: 0 }}>

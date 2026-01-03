@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/moonseob/pixiv-bookmark-helper/compare/v1.1.0...v1.1.1) (2026-01-03)
+
+
+### Bug Fixes
+
+* handle /en pixiv URLs so user ID resolves on English UI ([3e8e38e](https://github.com/moonseob/pixiv-bookmark-helper/commit/3e8e38ee9933c723770ed0454c519a23327259df))
+
 ## [1.1.0](https://github.com/moonseob/pixiv-bookmark-helper/compare/v1.0.0...v1.1.0) (2026-01-03)
 
 

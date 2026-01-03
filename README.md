@@ -30,6 +30,10 @@ Role: Popup-only WebExtension for bookmark navigation and quick actions on pixiv
   ```bash
   pnpm env use --global $(cat .node-version)
   ```
+- Install git hooks:
+  ```bash
+  pnpm install
+  ```
 - Start the dev server:
   ```bash
   pnpm dev

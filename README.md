@@ -9,7 +9,7 @@ A lightweight browser extension that helps you navigate and manage pixiv bookmar
 - Login-aware UI state and pixiv-only activation.
 
 ## Overview
-<img width="1280" height="800" alt="スクリーンショット 2026-01-04 4 44 33" src="https://github.com/user-attachments/assets/66b42616-4400-414a-8bec-8308227500b5" />
+<img width="1280" height="800" alt="" src="https://github.com/user-attachments/assets/66b42616-4400-414a-8bec-8308227500b5" />
 
 - Works only on `www.pixiv.net` and requires you to be logged in.
 - UI is shown through the extension popup (no content scripts).

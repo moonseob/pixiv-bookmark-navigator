@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0](https://github.com/moonseob/pixiv-bookmark-helper/compare/v1.0.0...v1.1.0) (2026-01-03)
+
+
+### Features
+
+* add disclaimer on the help page ([276f77f](https://github.com/moonseob/pixiv-bookmark-helper/commit/276f77f920a8d2d9549e229702d6de5c42126bd2))
+* implement bookmark tag filtering ([14f9555](https://github.com/moonseob/pixiv-bookmark-helper/commit/14f9555d548f06e8e19c7210f005537986f15835))
+* implement localization support ([3ba41a7](https://github.com/moonseob/pixiv-bookmark-helper/commit/3ba41a7801c8ba71ea41fff0718d0ad4b1bca616))
+* show badge on navigation ([d57e875](https://github.com/moonseob/pixiv-bookmark-helper/commit/d57e875824cecbe105305262cd4e73e2e9ba9dc7))
+* validate Pixiv URL before handling jump requests ([2c05c2a](https://github.com/moonseob/pixiv-bookmark-helper/commit/2c05c2a0c7ca35d4c07006a043e0d24ec2eb2f53))
+
 ## 1.0.0 (2026-01-03)
 
 

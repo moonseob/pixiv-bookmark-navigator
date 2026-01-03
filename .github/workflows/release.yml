@@ -34,4 +34,6 @@ jobs:
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.release.tag_name }}
+          fail_on_unmatched_files: true
           files: release/*.zip

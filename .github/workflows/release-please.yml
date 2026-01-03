@@ -16,5 +16,4 @@ jobs:
       - name: Run Release Please
         uses: googleapis/release-please-action@v4
         with:
-          release-type: node
-          changelog-path: CHANGELOG.md
+          config-file: release-please-config.json

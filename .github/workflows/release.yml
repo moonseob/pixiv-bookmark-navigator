@@ -1,9 +1,8 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  release:
+    types: [created, published, released]
 
 permissions:
   contents: write
@@ -35,5 +34,4 @@ jobs:
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
-          body_path: CHANGELOG.md
           files: release/*.zip

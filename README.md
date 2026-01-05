@@ -1,6 +1,8 @@
-# pixiv Bookmark Helper
+# pixiv Bookmark Navigator
 
 A lightweight browser extension that helps you navigate and manage pixiv bookmarks.
+
+Available on [Chrome Web Store](https://chromewebstore.google.com/detail/ecddglechhfilpbkgaholhemfiocjmgp)
 
 ## Features
 - Jump to a random bookmark.
@@ -15,15 +17,6 @@ A lightweight browser extension that helps you navigate and manage pixiv bookmar
 - UI is shown through the extension popup (no content scripts).
 - Login state is checked and cached in session storage.
 - Keyboard shortcut support for random bookmarks (optional).
-
-## Installation
-> Chrome Web Store review is currently pending.
-
-1. Download the latest release ZIP from [Releases](https://github.com/moonseob/pixiv-bookmark-helper/releases)
-2. Unzip the downloaded file.
-3. Open `chrome://extensions` in Chrome (or Chromium-based browser).
-4. Enable Developer mode.
-5. Click "Load unpacked" and select the extracted folder that contains `manifest.json`.
 
 ## Built With
 - [CRXJS](https://crxjs.dev) + Vite.
@@ -54,6 +47,7 @@ A lightweight browser extension that helps you navigate and manage pixiv bookmar
 - Navigate to previous/next bookmark with left/right arrow keys (pixiv mobile app-style).
 - Support more bookmark types (illustrations/manga, novels, collections).
 - Support private bookmarks.
+- Firefox support
 
 ## Disclaimer
 This project is not affiliated with pixiv inc. Use at your own risk; any disadvantages or damages resulting from using this program are the responsibility of each user.

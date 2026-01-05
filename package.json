@@ -1,5 +1,5 @@
 {
-  "name": "pixiv-bookmark-helper",
+  "name": "pixiv-bookmark-navigator",
   "description": "Helps navigate and manage pixiv bookmarks.",
   "type": "module",
   "version": "1.1.1",
@@ -8,12 +8,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/moonseob/pixiv-bookmark-helper.git"
+    "url": "https://github.com/moonseob/pixiv-bookmark-navigator.git"
   },
   "bugs": {
-    "url": "https://github.com/moonseob/pixiv-bookmark-helper/issues"
+    "url": "https://github.com/moonseob/pixiv-bookmark-navigator/issues"
   },
-  "homepage": "https://github.com/moonseob/pixiv-bookmark-helper#readme",
+  "homepage": "https://github.com/moonseob/pixiv-bookmark-navigator#readme",
   "engines": {
     "node": "24.10.0"
   },

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/moonseob/pixiv-bookmark-navigator/compare/v1.1.1...v1.1.2) (2026-01-05)
+
+
+### Bug Fixes
+
+* rename project from "pixiv Bookmark Helper" to "pixiv Bookmark Navigator" ([e731261](https://github.com/moonseob/pixiv-bookmark-navigator/commit/e731261021b38e6cc90c7269f01a1e34509e805f))
+
 ## [1.1.1](https://github.com/moonseob/pixiv-bookmark-navigator/compare/v1.1.0...v1.1.1) (2026-01-03)
 
 

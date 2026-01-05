@@ -15,7 +15,7 @@ import {
 import { getRecentWorkIds, setRecentWorkIds } from '@/storage/recentHistory';
 import { getSessionUser, setSessionUser } from '@/storage/sessionUser';
 
-const LOG_PREFIX = '[pixiv Bookmark Helper]';
+const LOG_PREFIX = '[pixiv-bookmark-navigator]';
 const RECENT_HISTORY_LIMIT = 10;
 const BADGE_TIMEOUT_MS = 1500;
 

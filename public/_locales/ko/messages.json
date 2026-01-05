@@ -1,18 +1,18 @@
 {
   "app_name": {
-    "message": "pixiv 북마크 도구"
+    "message": "pixiv 북마크 내비"
   },
   "app_description": {
-    "message": "pixiv 북마크 탐색과 관리를 도와줍니다."
+    "message": "pixiv 북마크 탐색과 간단한 관리를 도와줍니다."
   },
   "action_title": {
-    "message": "pixiv 북마크 도구"
+    "message": "pixiv 북마크 내비"
   },
   "command_random_bookmark": {
     "message": "랜덤 북마크"
   },
   "app_bar_title_main": {
-    "message": "북마크 도구"
+    "message": "북마크 내비"
   },
   "app_bar_title_help": {
     "message": "도움말"

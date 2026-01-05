@@ -1,18 +1,18 @@
 {
   "app_name": {
-    "message": "pixiv Bookmark Helper"
+    "message": "pixiv Bookmark Navigator"
   },
   "app_description": {
     "message": "Helps navigate and manage pixiv bookmarks."
   },
   "action_title": {
-    "message": "pixiv Bookmark Helper"
+    "message": "pixiv Bookmark Navigator"
   },
   "command_random_bookmark": {
     "message": "Random bookmark"
   },
   "app_bar_title_main": {
-    "message": "Bookmark Helper"
+    "message": "Bookmark Navigator"
   },
   "app_bar_title_help": {
     "message": "Help"

@@ -4,7 +4,7 @@ import { Card, CardBody, CardText, CardTitle } from '@/components/Card';
 import { t } from '@/shared/i18n';
 
 const SHORTCUTS_URL = 'chrome://extensions/shortcuts';
-const GITHUB_URL = 'https://github.com/moonseob/pixiv-bookmark-helper';
+const GITHUB_URL = 'https://github.com/moonseob/pixiv-bookmark-navigator';
 
 const openUrl = (url: string) => {
   try {

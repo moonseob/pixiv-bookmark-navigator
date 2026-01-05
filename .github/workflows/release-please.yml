@@ -38,4 +38,4 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ steps.release.outputs.tag_name }} release/pixiv-bookmark-helper-${{ steps.release.outputs.version }}.zip
+        run: gh release upload ${{ steps.release.outputs.tag_name }} release/pixiv-bookmark-navigator-${{ steps.release.outputs.version }}.zip

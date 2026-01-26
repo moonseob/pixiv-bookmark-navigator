@@ -21,33 +21,33 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "i18n:check": "node scripts/i18n-check.cjs",
-    "format": "biome format . --write",
+    "check": "biome check --write",
     "preview": "vite preview",
     "prepare": "husky"
   },
   "dependencies": {
-    "@charcoal-ui/react": "^5.1.0",
-    "@charcoal-ui/styled": "^5.1.0",
-    "@charcoal-ui/theme": "^5.1.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "styled-components": "^6.1.19"
+    "@charcoal-ui/react": "^5.2.0",
+    "@charcoal-ui/styled": "^5.2.0",
+    "@charcoal-ui/theme": "^5.2.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "styled-components": "^6.3.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.10",
-    "@crxjs/vite-plugin": "^2.0.3",
-    "@commitlint/cli": "^19.6.0",
-    "@commitlint/config-conventional": "^19.6.0",
-    "@types/chrome": "^0.1.1",
-    "@types/node": "^24.10.0",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
+    "@biomejs/biome": "^2.3.12",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@crxjs/vite-plugin": "^2.3.0",
+    "@types/chrome": "^0.1.36",
+    "@types/node": "^24.10.9",
+    "@types/react": "^19.2.9",
+    "@types/react-dom": "^19.2.3",
     "@types/styled-components": "^5.1.36",
     "@vitejs/plugin-react": "^4.7.0",
-    "husky": "^9.1.6",
+    "husky": "^9.1.7",
     "typescript": "~5.9.3",
-    "vite": "^7.0.5",
+    "vite": "^7.3.1",
     "vite-plugin-zip-pack": "^1.2.4"
   },
-  "packageManager": "pnpm@10.27.0"
+  "packageManager": "pnpm@10.28.1"
 }

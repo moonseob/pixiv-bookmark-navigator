@@ -50,6 +50,15 @@
   "main_tag_uncategorized": {
     "message": "未分類"
   },
+  "main_visibility": {
+    "message": "公開設定"
+  },
+  "main_visibility_public": {
+    "message": "公開"
+  },
+  "main_visibility_private": {
+    "message": "非公開"
+  },
   "profile_please_login": {
     "message": "ログインしてください"
   },

@@ -50,6 +50,15 @@
   "main_tag_uncategorized": {
     "message": "미분류"
   },
+  "main_visibility": {
+    "message": "공개여부"
+  },
+  "main_visibility_public": {
+    "message": "공개"
+  },
+  "main_visibility_private": {
+    "message": "비공개"
+  },
   "profile_please_login": {
     "message": "로그인해주세요"
   },

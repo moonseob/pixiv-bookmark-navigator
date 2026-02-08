@@ -5,6 +5,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-display: swap;
+  /* biome-ignore lint/complexity/noImportantStyles: required to override charcoal ui background */
   background-color: var(--charcoal-background2) !important;
 }
 

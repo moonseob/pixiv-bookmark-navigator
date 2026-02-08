@@ -50,6 +50,15 @@
   "main_tag_uncategorized": {
     "message": "Uncategorized"
   },
+  "main_visibility": {
+    "message": "Visibility"
+  },
+  "main_visibility_public": {
+    "message": "Public"
+  },
+  "main_visibility_private": {
+    "message": "Private"
+  },
   "profile_please_login": {
     "message": "Please log in"
   },

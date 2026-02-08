@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchUserProfile } from '@/pixiv/api';
 import { clearSessionUser } from '@/storage/sessionUser';
+import type { UserProfile } from '@/storage/userProfile';
 import {
   clearUserProfile,
   getUserProfile,
   setUserProfile,
 } from '@/storage/userProfile';
-import type { UserProfile } from '@/storage/userProfile';
 
 export type ProfileStatus = 'checking' | 'ready' | 'empty' | 'error';
 

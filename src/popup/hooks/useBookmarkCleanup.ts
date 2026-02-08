@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { parseArtworkIdFromUrl } from '@/pixiv/urls';
-import { queryActiveTab } from '@/pixiv/chrome';
 import { fetchBookmarkInfoForArtwork, removeBookmark } from '@/pixiv/api';
-import { getRecentWorkIds, setRecentWorkIds } from '@/storage/recentHistory';
+import { queryActiveTab } from '@/pixiv/chrome';
+import { parseArtworkIdFromUrl } from '@/pixiv/urls';
 import type { SetStatus } from '@/popup/types';
 import { t } from '@/shared/i18n';
+import { getRecentWorkIds, setRecentWorkIds } from '@/storage/recentHistory';
 
 export const useBookmarkCleanup = (
   setStatus: SetStatus,

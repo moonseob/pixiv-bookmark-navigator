@@ -24,9 +24,3 @@ export const parseBookmarkTagFromUrl = (url?: string) => {
     return null;
   }
 };
-
-export const buildBookmarksPageUrl = (userId: string) =>
-  `https://www.pixiv.net/users/${userId}/bookmarks/artworks`;
-
-export const buildArtworkUrl = (workId: string) =>
-  `https://www.pixiv.net/artworks/${workId}`;

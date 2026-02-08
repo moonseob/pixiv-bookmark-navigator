@@ -3,15 +3,19 @@ import {
   fetchTotalBookmarks,
   pickRandomWork,
 } from '@/pixiv/api';
+import {
+  type BookmarkVisibility,
+  normalizeBookmarkVisibility,
+} from '@/pixiv/bookmarkVisibility';
 import { queryActiveTab } from '@/pixiv/chrome';
 import { DEFAULT_BOOKMARKS_PER_PAGE } from '@/pixiv/constants';
-import { buildArtworkUrl, parseBookmarkTagFromUrl } from '@/pixiv/urls';
+import { parseBookmarkTagFromUrl } from '@/pixiv/urls';
 import { ExtensionMessageType } from '@/shared/messages';
-import { getBookmarkStats, setBookmarkStats } from '@/storage/bookmarkStats';
 import {
-  getBookmarkTagFilter,
-  setBookmarkTagFilter,
-} from '@/storage/bookmarkTagFilter';
+  getBookmarkFilters,
+  updateBookmarkFilters,
+} from '@/storage/bookmarkFilters';
+import { getBookmarkStats, setBookmarkStats } from '@/storage/bookmarkStats';
 import { getRecentWorkIds, setRecentWorkIds } from '@/storage/recentHistory';
 import { getSessionUser, setSessionUser } from '@/storage/sessionUser';
 
@@ -62,7 +66,7 @@ const getTabById = (tabId: number) =>
   });
 
 const navigateToWork = async (tabId: number | undefined, workId: string) => {
-  const url = buildArtworkUrl(workId);
+  const url = `https://www.pixiv.net/artworks/${workId}`;
   if (tabId) {
     await updateTabUrl(tabId, url);
     return;
@@ -73,7 +77,7 @@ const navigateToWork = async (tabId: number | undefined, workId: string) => {
 const syncTagFromTab = (tab?: chrome.tabs.Tab) => {
   const tagName = parseBookmarkTagFromUrl(tab?.url);
   if (tagName === null) return;
-  void setBookmarkTagFilter(tagName);
+  void updateBookmarkFilters({ tagName });
 };
 
 const showBadge = (text: string, bgColor?: string) =>
@@ -137,28 +141,36 @@ const resolveUserIdFromRedirect = async () => {
   return userId;
 };
 
-const buildStats = async (userId: string, tagName = '') => {
-  const total = await fetchTotalBookmarks(userId, tagName);
+const buildStats = async (
+  userId: string,
+  tagName: string,
+  visibility: BookmarkVisibility,
+) => {
+  const total = await fetchTotalBookmarks(userId, tagName, visibility);
   return {
     userId,
     total,
     perPage: DEFAULT_BOOKMARKS_PER_PAGE,
     tagName,
+    visibility,
     updatedAt: Date.now(),
   };
 };
 
-const ensureBookmarkStats = async (tagName: string) => {
+const ensureBookmarkStats = async (
+  tagName: string,
+  visibility: BookmarkVisibility,
+) => {
   const cachedUser = await getSessionUser();
   const cachedUserId = cachedUser?.userId ?? null;
   const resolvedUserId = cachedUserId ?? (await resolveUserIdFromRedirect());
 
-  const stored = await getBookmarkStats(resolvedUserId, tagName);
+  const stored = await getBookmarkStats(resolvedUserId, tagName, visibility);
   if (stored?.userId === resolvedUserId) {
     return stored;
   }
 
-  const stats = await buildStats(resolvedUserId, tagName);
+  const stats = await buildStats(resolvedUserId, tagName, visibility);
   await setBookmarkStats(stats);
   if (!cachedUserId) {
     await setSessionUser(resolvedUserId);
@@ -166,14 +178,17 @@ const ensureBookmarkStats = async (tagName: string) => {
   return stats;
 };
 
-const fetchRandomWorkId = async (tagName: string) => {
-  const stats = await ensureBookmarkStats(tagName);
+const fetchRandomWorkId = async (
+  tagName: string,
+  visibility: BookmarkVisibility,
+) => {
+  const stats = await ensureBookmarkStats(tagName, visibility);
 
   const perPage = Math.max(1, stats.perPage || DEFAULT_BOOKMARKS_PER_PAGE);
   const total =
     stats.total && stats.total > 0
       ? stats.total
-      : await fetchTotalBookmarks(stats.userId, stats.tagName);
+      : await fetchTotalBookmarks(stats.userId, stats.tagName, visibility);
   const numPages = Math.max(1, Math.ceil(total / perPage));
   const pageIndex = Math.floor(Math.random() * numPages);
 
@@ -182,6 +197,7 @@ const fetchRandomWorkId = async (tagName: string) => {
     stats.tagName,
     perPage * pageIndex,
     perPage,
+    visibility,
   );
   const works = data.body?.works ?? [];
   const latestTotal = data.body?.total;
@@ -216,7 +232,10 @@ const isPixivUrl = (url?: string) => {
   }
 };
 
-const handleJumpRequest = async (tagName: string) => {
+const handleJumpRequest = async (
+  tagName: string,
+  visibility: BookmarkVisibility,
+) => {
   const tab = await queryActiveTab();
   if (!tab) {
     throw new Error('No active tab.');
@@ -225,7 +244,7 @@ const handleJumpRequest = async (tagName: string) => {
     throw new Error('Open a Pixiv tab first.');
   }
 
-  const workId = await fetchRandomWorkId(tagName);
+  const workId = await fetchRandomWorkId(tagName, visibility);
   await navigateToWork(tab.id, workId);
   await showBadge('🚀');
 };
@@ -247,7 +266,8 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== ExtensionMessageType.RandomRequest) return;
-  handleJumpRequest(message.tagName ?? '')
+  const visibility = normalizeBookmarkVisibility(message.visibility);
+  handleJumpRequest(message.tagName ?? '', visibility)
     .then(() => sendResponse({ ok: true }))
     .catch((error) => {
       const messageText =
@@ -262,7 +282,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== ExtensionMessageType.ResolveUser) return;
   resolveUserIdFromRedirect()
     .then(async (userId) => {
-      const stats = await buildStats(userId);
+      const filters = await getBookmarkFilters();
+      const stats = await buildStats(
+        userId,
+        filters.tagName,
+        filters.visibility,
+      );
       await setBookmarkStats(stats);
       await setSessionUser(userId);
       sendResponse({ ok: true, userId } satisfies ResolveUserIdResponse);
@@ -282,16 +307,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 chrome.commands.onCommand.addListener((command) => {
   if (command !== 'jump-random-bookmark') return;
   (async () => {
+    const filters = await getBookmarkFilters();
     try {
-      const tagFilter = await getBookmarkTagFilter();
-      await handleJumpRequest(tagFilter.tagName ?? '');
+      await handleJumpRequest(filters.tagName, filters.visibility);
     } catch (error) {
-      await handleJumpRequest('').catch((innerError) => {
-        console.warn(
-          LOG_PREFIX,
-          innerError instanceof Error ? innerError.message : innerError,
-        );
-      });
       console.warn(LOG_PREFIX, error instanceof Error ? error.message : error);
     }
   })();

@@ -1,4 +1,4 @@
-import { Button } from '@charcoal-ui/react';
+import { Button, SegmentedControl } from '@charcoal-ui/react';
 import { useState } from 'react';
 import styled from 'styled-components';
 import BookmarkTagFilterStatus from '@/components/BookmarkTagFilterStatus';
@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/Card';
 import ProfileCard from '@/components/ProfileCard';
-import { useBookmarkTagFilter } from '@/popup/hooks/useBookmarkTagFilter';
+import { useBookmarkFilters } from '@/popup/hooks/useBookmarkFilters';
 import { useLoginStatus } from '@/popup/hooks/useLoginStatus';
 import { useRandomJump } from '@/popup/hooks/useRandomJump';
 import { useUserProfile } from '@/popup/hooks/useUserProfile';
@@ -29,7 +29,8 @@ export default function MainPage() {
     isLoggedIn,
   );
 
-  const { currentTagName, clearTag } = useBookmarkTagFilter(userId);
+  const { tagName, visibility, setVisibility, clearTag } =
+    useBookmarkFilters(userId);
   const [isTagHelpOpen, setIsTagHelpOpen] = useState(false);
 
   // const {
@@ -44,7 +45,8 @@ export default function MainPage() {
     () => {},
     '',
     isLoggedIn,
-    currentTagName,
+    tagName,
+    visibility,
   );
 
   return (
@@ -91,11 +93,32 @@ export default function MainPage() {
               <CardText>{t('help_tag_body')}</CardText>
             ) : (
               <BookmarkTagFilterStatus
-                tagName={currentTagName}
+                tagName={tagName}
                 disabled={!isLoggedIn}
                 onClear={clearTag}
               />
             )}
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('main_visibility')}</CardTitle>
+          </CardHeader>
+          <CardBody style={{ display: 'inline-block' }}>
+            <SegmentedControl
+              name={t('main_visibility')}
+              value={visibility}
+              disabled={!isLoggedIn}
+              onChange={(value) => {
+                if (value === 'show' || value === 'hide') {
+                  void setVisibility(value);
+                }
+              }}
+              data={[
+                { label: t('main_visibility_public'), value: 'show' },
+                { label: t('main_visibility_private'), value: 'hide' },
+              ]}
+            />
           </CardBody>
         </Card>
       </StyledSurface>

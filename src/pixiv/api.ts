@@ -1,4 +1,5 @@
 import { fetchArtworkPageData, fetchWithCsrfToken } from '@/pixiv/auth';
+import type { BookmarkVisibility } from '@/pixiv/bookmarkVisibility';
 import type { UserProfile } from '@/storage/userProfile';
 import type { PixivResponse, PixivUserResponse, PixivWork } from './types';
 
@@ -7,6 +8,7 @@ export const buildBookmarksApiUrl = (
   tagName: string,
   offset: number,
   limit: number,
+  visibility: BookmarkVisibility,
 ) => {
   const url = new URL(
     `https://www.pixiv.net/ajax/user/${userId}/illusts/bookmarks`,
@@ -14,7 +16,7 @@ export const buildBookmarksApiUrl = (
   url.searchParams.set('tag', tagName ?? '');
   url.searchParams.set('offset', offset.toString());
   url.searchParams.set('limit', limit.toString());
-  url.searchParams.set('rest', 'show');
+  url.searchParams.set('rest', visibility);
   url.searchParams.set('lang', 'en');
   return url.toString();
 };
@@ -32,13 +34,18 @@ export const fetchBookmarkPage = async (
   tagName: string,
   offset: number,
   limit: number,
+  visibility: BookmarkVisibility,
 ) => {
-  const url = buildBookmarksApiUrl(userId, tagName, offset, limit);
+  const url = buildBookmarksApiUrl(userId, tagName, offset, limit, visibility);
   return fetchPixiv(url);
 };
 
-export const fetchTotalBookmarks = async (userId: string, tagName: string) => {
-  const data = await fetchBookmarkPage(userId, tagName, 0, 1);
+export const fetchTotalBookmarks = async (
+  userId: string,
+  tagName: string,
+  visibility: BookmarkVisibility,
+) => {
+  const data = await fetchBookmarkPage(userId, tagName, 0, 1, visibility);
   const total = data.body?.total;
   if (typeof total !== 'number' || Number.isNaN(total)) {
     throw new Error('Missing total count from pixiv API.');

@@ -35,6 +35,7 @@ export const useRandomJump = (
       }
       const response = await sendMessage<JumpResponse>({
         type: ExtensionMessageType.RandomRequest,
+        trigger: 'popup_button',
         tagName,
         visibility,
       });

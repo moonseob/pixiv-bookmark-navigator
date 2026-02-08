@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.2.1](https://github.com/moonseob/pixiv-bookmark-navigator/compare/v1.1.2...v1.2.1) (2026-02-08)
+
+
+### Features
+
+* add bookmark visibility filters ([#15](https://github.com/moonseob/pixiv-bookmark-navigator/issues/15)) ([663ccb2](https://github.com/moonseob/pixiv-bookmark-navigator/commit/663ccb2bd590cabbebc0378686601cf93b32c657))
+* **analytics:** add GA4 event tracking ([072238b](https://github.com/moonseob/pixiv-bookmark-navigator/commit/072238bb2b2d0ae07f32b31e9251372853fc49eb))
+
+
+### Bug Fixes
+
+* update dependencies ([041499b](https://github.com/moonseob/pixiv-bookmark-navigator/commit/041499bdd446b6374e60b59a3d30b42e5f4c2029))
+
+
+### Miscellaneous Chores
+
+* force release 1.2.1 ([e24b299](https://github.com/moonseob/pixiv-bookmark-navigator/commit/e24b2991bcac0379740757fe0f7f78fe3267ebe5))
+
 ## [1.1.2](https://github.com/moonseob/pixiv-bookmark-navigator/compare/v1.1.1...v1.1.2) (2026-01-05)
 
 

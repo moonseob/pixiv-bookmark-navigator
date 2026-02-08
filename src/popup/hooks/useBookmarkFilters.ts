@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { BookmarkVisibility } from '@/pixiv/bookmarkVisibility';
 import { queryActiveTab } from '@/pixiv/chrome';
 import { parseBookmarkTagFromUrl } from '@/pixiv/urls';
+import { trackPopupAnalytics } from '@/popup/analytics';
 import {
   getBookmarkFilters,
   updateBookmarkFilters,
@@ -78,6 +79,9 @@ export const useBookmarkFilters = (
 
   const setVisibility = useCallback(async (next: BookmarkVisibility) => {
     setVisibilityState(next);
+    trackPopupAnalytics('bookmark_visibility_changed', {
+      visibility: next,
+    });
     try {
       await updateBookmarkFilters({ visibility: next });
     } catch {
@@ -87,6 +91,10 @@ export const useBookmarkFilters = (
 
   const clearTag = async () => {
     if (!userId) return;
+    trackPopupAnalytics('tag_filter_cleared', {
+      visibility,
+      had_tag_filter: tagName.length > 0,
+    });
     try {
       const tab = await queryActiveTab();
       const url = new URL(

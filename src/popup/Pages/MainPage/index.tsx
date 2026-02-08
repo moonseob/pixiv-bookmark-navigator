@@ -1,5 +1,5 @@
 import { Button, SegmentedControl } from '@charcoal-ui/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import BookmarkTagFilterStatus from '@/components/BookmarkTagFilterStatus';
 import {
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/Card';
 import ProfileCard from '@/components/ProfileCard';
+import { trackPopupAnalytics } from '@/popup/analytics';
 import { useBookmarkFilters } from '@/popup/hooks/useBookmarkFilters';
 import { useLoginStatus } from '@/popup/hooks/useLoginStatus';
 import { useRandomJump } from '@/popup/hooks/useRandomJump';
@@ -22,7 +23,15 @@ export default function MainPage() {
     refresh: refreshLoginStatus,
     userId,
   } = useLoginStatus(true);
+  const hasTrackedPopupOpen = useRef(false);
   const isLoggedIn = authStatus === 'ready';
+
+  useEffect(() => {
+    if (hasTrackedPopupOpen.current) return;
+    if (authStatus === 'checking') return;
+    hasTrackedPopupOpen.current = true;
+    trackPopupAnalytics('popup_opened', { auth_status: authStatus });
+  }, [authStatus]);
 
   const { profile, refresh: refreshProfile } = useUserProfile(
     userId,

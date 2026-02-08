@@ -23,7 +23,10 @@ export default defineManifest({
     type: 'module',
   },
   permissions: ['tabs', 'storage'],
-  host_permissions: ['https://www.pixiv.net/*'],
+  host_permissions: [
+    'https://www.pixiv.net/*',
+    'https://www.google-analytics.com/*',
+  ],
   content_scripts: [],
   commands: {
     'jump-random-bookmark': {

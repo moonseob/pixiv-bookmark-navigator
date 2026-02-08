@@ -13,6 +13,10 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    environment: production
+    env:
+      VITE_GA4_MEASUREMENT_ID: ${{ vars.VITE_GA4_MEASUREMENT_ID }}
+      VITE_GA4_API_SECRET: ${{ secrets.VITE_GA4_API_SECRET }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release

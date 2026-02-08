@@ -1,3 +1,4 @@
+import { sendAnalyticsEvent } from '@/analytics/ga4';
 import {
   fetchBookmarkPage,
   fetchTotalBookmarks,
@@ -10,7 +11,10 @@ import {
 import { queryActiveTab } from '@/pixiv/chrome';
 import { DEFAULT_BOOKMARKS_PER_PAGE } from '@/pixiv/constants';
 import { parseBookmarkTagFromUrl } from '@/pixiv/urls';
-import { ExtensionMessageType } from '@/shared/messages';
+import {
+  ExtensionMessageType,
+  type PopupAnalyticsEventName,
+} from '@/shared/messages';
 import {
   getBookmarkFilters,
   updateBookmarkFilters,
@@ -28,6 +32,8 @@ interface ResolveUserIdResponse {
   userId?: string;
   error?: string;
 }
+
+type JumpTrigger = 'popup_button' | 'keyboard_shortcut';
 
 const updateTabUrl = (tabId: number, url: string) =>
   new Promise<void>((resolve, reject) => {
@@ -232,6 +238,102 @@ const isPixivUrl = (url?: string) => {
   }
 };
 
+const classifyJumpError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/log\s*in|login|redirect|user id/i.test(message)) {
+    return 'login_required';
+  }
+  if (message.includes('Open a Pixiv tab first.')) {
+    return 'non_pixiv_tab';
+  }
+  if (message.includes('No active tab.')) {
+    return 'no_active_tab';
+  }
+  if (message.includes('No saved bookmark stats')) {
+    return 'missing_stats';
+  }
+  if (message.includes('No bookmarks found')) {
+    return 'no_bookmarks';
+  }
+  return 'unknown';
+};
+
+const trackRandomJumpAttempt = (
+  trigger: JumpTrigger,
+  visibility: BookmarkVisibility,
+  tagName: string,
+) => {
+  void sendAnalyticsEvent('random_jump_attempt', {
+    trigger,
+    visibility,
+    has_tag_filter: tagName.length > 0,
+  });
+};
+
+const trackRandomJumpResult = (
+  trigger: JumpTrigger,
+  visibility: BookmarkVisibility,
+  tagName: string,
+  result: 'success' | 'failure',
+  errorType?: string,
+) => {
+  void sendAnalyticsEvent('random_jump_result', {
+    trigger,
+    visibility,
+    has_tag_filter: tagName.length > 0,
+    result,
+    error_type: errorType,
+  });
+};
+
+const handleJumpRequestWithTracking = async (
+  tagName: string,
+  visibility: BookmarkVisibility,
+  trigger: JumpTrigger,
+) => {
+  trackRandomJumpAttempt(trigger, visibility, tagName);
+  try {
+    await handleJumpRequest(tagName, visibility);
+    trackRandomJumpResult(trigger, visibility, tagName, 'success');
+  } catch (error) {
+    trackRandomJumpResult(
+      trigger,
+      visibility,
+      tagName,
+      'failure',
+      classifyJumpError(error),
+    );
+    throw error;
+  }
+};
+
+const handlePopupAnalyticsEvent = (
+  eventName: PopupAnalyticsEventName,
+  params: Record<string, unknown> | undefined,
+) => {
+  if (eventName === 'popup_opened') {
+    const authStatus = params?.auth_status;
+    if (typeof authStatus !== 'string') return;
+    void sendAnalyticsEvent(eventName, { auth_status: authStatus });
+    return;
+  }
+  if (eventName === 'bookmark_visibility_changed') {
+    const visibility = params?.visibility;
+    if (visibility !== 'show' && visibility !== 'hide') return;
+    void sendAnalyticsEvent(eventName, { visibility });
+    return;
+  }
+  if (eventName === 'tag_filter_cleared') {
+    const visibility = params?.visibility;
+    const hadTagFilter = params?.had_tag_filter;
+    if (visibility !== 'show' && visibility !== 'hide') return;
+    void sendAnalyticsEvent(eventName, {
+      visibility,
+      had_tag_filter: hadTagFilter === true,
+    });
+  }
+};
+
 const handleJumpRequest = async (
   tagName: string,
   visibility: BookmarkVisibility,
@@ -267,7 +369,11 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== ExtensionMessageType.RandomRequest) return;
   const visibility = normalizeBookmarkVisibility(message.visibility);
-  handleJumpRequest(message.tagName ?? '', visibility)
+  const trigger: JumpTrigger =
+    message?.trigger === 'keyboard_shortcut'
+      ? 'keyboard_shortcut'
+      : 'popup_button';
+  handleJumpRequestWithTracking(message.tagName ?? '', visibility, trigger)
     .then(() => sendResponse({ ok: true }))
     .catch((error) => {
       const messageText =
@@ -276,6 +382,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ ok: false, error: messageText });
     });
   return true;
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type !== ExtensionMessageType.TrackAnalytics) return;
+  handlePopupAnalyticsEvent(message.eventName, message.params);
+  sendResponse({ ok: true });
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -309,7 +421,11 @@ chrome.commands.onCommand.addListener((command) => {
   (async () => {
     const filters = await getBookmarkFilters();
     try {
-      await handleJumpRequest(filters.tagName, filters.visibility);
+      await handleJumpRequestWithTracking(
+        filters.tagName,
+        filters.visibility,
+        'keyboard_shortcut',
+      );
     } catch (error) {
       console.warn(LOG_PREFIX, error instanceof Error ? error.message : error);
     }

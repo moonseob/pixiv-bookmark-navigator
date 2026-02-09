@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/moonseob/pixiv-bookmark-navigator/compare/v1.2.1...v1.3.0) (2026-02-09)
+
+
+### Features
+
+* extend random bookmark to artworks, novels, and collections ([#14](https://github.com/moonseob/pixiv-bookmark-navigator/issues/14)) ([45020c9](https://github.com/moonseob/pixiv-bookmark-navigator/commit/45020c91f5497452b293265dda91697e4622039f))
+
 ## [1.2.1](https://github.com/moonseob/pixiv-bookmark-navigator/compare/v1.1.2...v1.2.1) (2026-02-08)
 
 

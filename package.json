@@ -2,7 +2,7 @@
   "name": "pixiv-bookmark-navigator",
   "description": "Helps navigate and manage pixiv bookmarks.",
   "type": "module",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "private": true,
   "author": "Moonseob Eum",
   "license": "MIT",

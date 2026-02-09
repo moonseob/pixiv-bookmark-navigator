@@ -26,3 +26,6 @@ dist-ssr
 
 AGENTS.md
 .codex/
+
+# Generated assets
+artifacts/

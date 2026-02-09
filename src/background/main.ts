@@ -28,10 +28,8 @@ const LOG_PREFIX = '[pixiv-bookmark-navigator]';
 const RECENT_HISTORY_LIMIT = 10;
 const BADGE_TIMEOUT_MS = 1500;
 
-const normalizeTagForType = (
-  tagName: string,
-  bookmarkType: BookmarkType,
-) => (bookmarkType === 'collections' ? '' : tagName);
+const normalizeTagForType = (tagName: string, bookmarkType: BookmarkType) =>
+  bookmarkType === 'collections' ? '' : tagName;
 
 interface ResolveUserIdResponse {
   ok: boolean;

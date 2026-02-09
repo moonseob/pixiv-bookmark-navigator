@@ -47,5 +47,44 @@ Available on [Chrome Web Store](https://chromewebstore.google.com/detail/ecddgle
 - Navigate to previous/next bookmark with left/right arrow keys (pixiv mobile app-style).
 - Firefox support
 
+## Chrome Web Store Image Automation
+- Generate localized popup screenshots (`en`, `ja`, `ko`) and 1280x800 listing images:
+  ```bash
+  pnpm store:images
+  ```
+- Run in headless mode (optional):
+  ```bash
+  pnpm store:images -- --headless=true
+  ```
+- Build latest assets before capture when needed:
+  ```bash
+  pnpm store:images -- --build=true
+  ```
+- Generate only light-mode assets:
+  ```bash
+  pnpm store:images -- --withDarkVariant=false
+  ```
+- Enable headed fallback retry only when using headless mode:
+  ```bash
+  pnpm store:images -- --headless=true --headedFallback=true
+  ```
+- Output paths:
+  - `artifacts/chrome-web-store/popup-screenshots/popup-<locale>.png`
+  - `artifacts/chrome-web-store/popup-screenshots/popup-<locale>-dark.png`
+  - `artifacts/chrome-web-store/listing-images/store-<locale>.jpg`
+  - `artifacts/chrome-web-store/listing-images/store-<locale>-dark.jpg`
+- Requirement:
+  - `playwright` + Chromium runtime are required.
+  - Popup capture runs in headed mode by default.
+  - In headless mode, service worker initialization can fail on some environments; optional fallback retry can be enabled with `--headedFallback=true`.
+  - If port `5173` is used by a non-Vite service, the script exits with an error.
+  - If not installed yet:
+    ```bash
+    pnpm add -D playwright
+    pnpm exec playwright install chromium
+    ```
+  - Profile avatar for screenshots is loaded from `scripts/assets/demo-avatar.png`.
+  - Script entry point: `scripts/generate-store-images.mjs`.
+
 ## Disclaimer
 This project is not affiliated with pixiv inc. Use at your own risk; any disadvantages or damages resulting from using this program are the responsibility of each user.

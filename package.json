@@ -23,7 +23,8 @@
     "i18n:check": "node scripts/i18n-check.cjs",
     "check": "biome check --write",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "store:images": "node scripts/generate-store-images.mjs"
   },
   "dependencies": {
     "@charcoal-ui/react": "^5.2.0",
@@ -45,6 +46,7 @@
     "@types/styled-components": "^5.1.36",
     "@vitejs/plugin-react": "^4.7.0",
     "husky": "^9.1.7",
+    "playwright": "^1.58.2",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-zip-pack": "^1.2.4"

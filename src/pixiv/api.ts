@@ -1,7 +1,18 @@
 import { fetchArtworkPageData, fetchWithCsrfToken } from '@/pixiv/auth';
+import type { BookmarkType } from '@/pixiv/bookmarkType';
 import type { BookmarkVisibility } from '@/pixiv/bookmarkVisibility';
 import type { UserProfile } from '@/storage/userProfile';
-import type { PixivResponse, PixivUserResponse, PixivWork } from './types';
+import type { PixivResponse, PixivUserResponse } from './types';
+
+const getBookmarksApiPath = (userId: string, bookmarkType: BookmarkType) => {
+  if (bookmarkType === 'novels') {
+    return `https://www.pixiv.net/ajax/user/${userId}/novels/bookmarks`;
+  }
+  if (bookmarkType === 'collections') {
+    return `https://www.pixiv.net/ajax/user/${userId}/collections/bookmarks`;
+  }
+  return `https://www.pixiv.net/ajax/user/${userId}/illusts/bookmarks`;
+};
 
 export const buildBookmarksApiUrl = (
   userId: string,
@@ -9,11 +20,12 @@ export const buildBookmarksApiUrl = (
   offset: number,
   limit: number,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
-  const url = new URL(
-    `https://www.pixiv.net/ajax/user/${userId}/illusts/bookmarks`,
-  );
-  url.searchParams.set('tag', tagName ?? '');
+  const url = new URL(getBookmarksApiPath(userId, bookmarkType));
+  if (bookmarkType !== 'collections') {
+    url.searchParams.set('tag', tagName ?? '');
+  }
   url.searchParams.set('offset', offset.toString());
   url.searchParams.set('limit', limit.toString());
   url.searchParams.set('rest', visibility);
@@ -35,8 +47,16 @@ export const fetchBookmarkPage = async (
   offset: number,
   limit: number,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
-  const url = buildBookmarksApiUrl(userId, tagName, offset, limit, visibility);
+  const url = buildBookmarksApiUrl(
+    userId,
+    tagName,
+    offset,
+    limit,
+    visibility,
+    bookmarkType,
+  );
   return fetchPixiv(url);
 };
 
@@ -44,8 +64,16 @@ export const fetchTotalBookmarks = async (
   userId: string,
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
-  const data = await fetchBookmarkPage(userId, tagName, 0, 1, visibility);
+  const data = await fetchBookmarkPage(
+    userId,
+    tagName,
+    0,
+    1,
+    visibility,
+    bookmarkType,
+  );
   const total = data.body?.total;
   if (typeof total !== 'number' || Number.isNaN(total)) {
     throw new Error('Missing total count from pixiv API.');
@@ -53,11 +81,11 @@ export const fetchTotalBookmarks = async (
   return total;
 };
 
-export const pickRandomWork = (works: PixivWork[]) => {
-  if (works.length === 0) {
+export const pickRandomItem = <T>(items: T[]) => {
+  if (items.length === 0) {
     throw new Error('No bookmarks found.');
   }
-  return works[Math.floor(Math.random() * works.length)];
+  return items[Math.floor(Math.random() * items.length)];
 };
 
 type BookmarkInfo = {

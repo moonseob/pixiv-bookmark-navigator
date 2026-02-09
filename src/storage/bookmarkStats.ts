@@ -1,3 +1,4 @@
+import { type BookmarkType, normalizeBookmarkType } from '@/pixiv/bookmarkType';
 import {
   type BookmarkVisibility,
   normalizeBookmarkVisibility,
@@ -12,11 +13,22 @@ export interface BookmarkStats {
   tagName: string;
   updatedAt: number;
   visibility: BookmarkVisibility;
+  bookmarkType: BookmarkType;
 }
 
 type BookmarkStatsMap = Record<string, BookmarkStats>;
 
 const buildKey = (
+  userId: string,
+  tagName: string,
+  visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
+) =>
+  `${userId}::${tagName}::${visibility}::${normalizeBookmarkType(
+    bookmarkType,
+  )}`;
+
+const buildVisibilityLegacyKey = (
   userId: string,
   tagName: string,
   visibility: BookmarkVisibility,
@@ -39,6 +51,7 @@ const isBookmarkStats = (value: unknown): value is BookmarkStats => {
 const normalizeStats = (stats: BookmarkStats): BookmarkStats => ({
   ...stats,
   visibility: normalizeBookmarkVisibility(stats.visibility),
+  bookmarkType: normalizeBookmarkType(stats.bookmarkType),
 });
 
 export const setBookmarkStats = (stats: BookmarkStats) =>
@@ -61,11 +74,17 @@ export const setBookmarkStats = (stats: BookmarkStats) =>
               existing.userId,
               existing.tagName,
               normalizeBookmarkVisibility(existing.visibility),
+              existing.bookmarkType,
             )]: normalizeStats(existing),
           }
         : ((existing as BookmarkStatsMap) ?? {});
       nextMap[
-        buildKey(normalized.userId, normalized.tagName, normalized.visibility)
+        buildKey(
+          normalized.userId,
+          normalized.tagName,
+          normalized.visibility,
+          normalized.bookmarkType,
+        )
       ] = normalized;
       chrome.storage.session.set({ [STORAGE_KEY]: nextMap }, () => {
         const err2 = chrome.runtime.lastError;
@@ -82,6 +101,7 @@ export const getBookmarkStats = (
   userId: string,
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) =>
   new Promise<BookmarkStats | null>((resolve, reject) => {
     if (!chrome.storage.session) {
@@ -89,6 +109,7 @@ export const getBookmarkStats = (
       return;
     }
     const normalizedVisibility = normalizeBookmarkVisibility(visibility);
+    const normalizedBookmarkType = normalizeBookmarkType(bookmarkType);
     chrome.storage.session.get(STORAGE_KEY, (result) => {
       const err = chrome.runtime.lastError;
       if (err) {
@@ -105,23 +126,46 @@ export const getBookmarkStats = (
         resolve(
           legacy.userId === userId &&
             legacy.tagName === tagName &&
-            legacy.visibility === normalizedVisibility
+            legacy.visibility === normalizedVisibility &&
+            legacy.bookmarkType === normalizedBookmarkType
             ? legacy
             : null,
         );
         return;
       }
       const map = existing as BookmarkStatsMap;
-      const match = map[buildKey(userId, tagName, normalizedVisibility)];
+      const match =
+        map[
+          buildKey(
+            userId,
+            tagName,
+            normalizedVisibility,
+            normalizedBookmarkType,
+          )
+        ];
       if (match) {
         resolve(normalizeStats(match));
+        return;
+      }
+      const visibilityLegacy =
+        map[buildVisibilityLegacyKey(userId, tagName, normalizedVisibility)];
+      if (visibilityLegacy) {
+        const normalized = normalizeStats(visibilityLegacy);
+        resolve(
+          normalized.bookmarkType === normalizedBookmarkType
+            ? normalized
+            : null,
+        );
         return;
       }
       const legacy = map[buildLegacyKey(userId, tagName)];
       if (legacy) {
         const normalized = normalizeStats(legacy);
         resolve(
-          normalized.visibility === normalizedVisibility ? normalized : null,
+          normalized.visibility === normalizedVisibility &&
+            normalized.bookmarkType === normalizedBookmarkType
+            ? normalized
+            : null,
         );
         return;
       }

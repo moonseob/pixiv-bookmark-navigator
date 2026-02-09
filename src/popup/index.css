@@ -68,3 +68,8 @@ div.blocker {
     margin: 8px 0;
   }
 }
+
+.charcoal-segmented-control-radio__label {
+  font-size: 13px;
+  font-weight: 600;
+}

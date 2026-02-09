@@ -59,6 +59,18 @@
   "main_visibility_private": {
     "message": "Private"
   },
+  "main_bookmark_type": {
+    "message": "Bookmark type"
+  },
+  "main_bookmark_type_artworks": {
+    "message": "Illustrations and Manga"
+  },
+  "main_bookmark_type_novels": {
+    "message": "Novels"
+  },
+  "main_bookmark_type_collections": {
+    "message": "Collections"
+  },
   "profile_please_login": {
     "message": "Please log in"
   },

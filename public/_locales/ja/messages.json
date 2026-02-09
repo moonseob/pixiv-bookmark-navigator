@@ -59,6 +59,18 @@
   "main_visibility_private": {
     "message": "非公開"
   },
+  "main_bookmark_type": {
+    "message": "ブックマーク種類"
+  },
+  "main_bookmark_type_artworks": {
+    "message": "イラスト・マンガ"
+  },
+  "main_bookmark_type_novels": {
+    "message": "小説"
+  },
+  "main_bookmark_type_collections": {
+    "message": "コレクション"
+  },
   "profile_please_login": {
     "message": "ログインしてください"
   },

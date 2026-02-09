@@ -45,8 +45,6 @@ Available on [Chrome Web Store](https://chromewebstore.google.com/detail/ecddgle
 ## Future Goals
 - Allow unbookmarking via a button click.
 - Navigate to previous/next bookmark with left/right arrow keys (pixiv mobile app-style).
-- Support more bookmark types (illustrations/manga, novels, collections).
-- Support private bookmarks.
 - Firefox support
 
 ## Disclaimer

@@ -2,15 +2,16 @@ import { sendAnalyticsEvent } from '@/analytics/ga4';
 import {
   fetchBookmarkPage,
   fetchTotalBookmarks,
-  pickRandomWork,
+  pickRandomItem,
 } from '@/pixiv/api';
+import { type BookmarkType, normalizeBookmarkType } from '@/pixiv/bookmarkType';
 import {
   type BookmarkVisibility,
   normalizeBookmarkVisibility,
 } from '@/pixiv/bookmarkVisibility';
 import { queryActiveTab } from '@/pixiv/chrome';
 import { DEFAULT_BOOKMARKS_PER_PAGE } from '@/pixiv/constants';
-import { parseBookmarkTagFromUrl } from '@/pixiv/urls';
+import { parseBookmarkFiltersFromUrl } from '@/pixiv/urls';
 import {
   ExtensionMessageType,
   type PopupAnalyticsEventName,
@@ -26,6 +27,11 @@ import { getSessionUser, setSessionUser } from '@/storage/sessionUser';
 const LOG_PREFIX = '[pixiv-bookmark-navigator]';
 const RECENT_HISTORY_LIMIT = 10;
 const BADGE_TIMEOUT_MS = 1500;
+
+const normalizeTagForType = (
+  tagName: string,
+  bookmarkType: BookmarkType,
+) => (bookmarkType === 'collections' ? '' : tagName);
 
 interface ResolveUserIdResponse {
   ok: boolean;
@@ -71,8 +77,22 @@ const getTabById = (tabId: number) =>
     });
   });
 
-const navigateToWork = async (tabId: number | undefined, workId: string) => {
-  const url = `https://www.pixiv.net/artworks/${workId}`;
+const buildBookmarkUrl = (workId: string, bookmarkType: BookmarkType) => {
+  if (bookmarkType === 'novels') {
+    return `https://www.pixiv.net/novel/show.php?id=${workId}`;
+  }
+  if (bookmarkType === 'collections') {
+    return `https://www.pixiv.net/collections/${workId}`;
+  }
+  return `https://www.pixiv.net/artworks/${workId}`;
+};
+
+const navigateToWork = async (
+  tabId: number | undefined,
+  workId: string,
+  bookmarkType: BookmarkType,
+) => {
+  const url = buildBookmarkUrl(workId, bookmarkType);
   if (tabId) {
     await updateTabUrl(tabId, url);
     return;
@@ -81,9 +101,16 @@ const navigateToWork = async (tabId: number | undefined, workId: string) => {
 };
 
 const syncTagFromTab = (tab?: chrome.tabs.Tab) => {
-  const tagName = parseBookmarkTagFromUrl(tab?.url);
-  if (tagName === null) return;
-  void updateBookmarkFilters({ tagName });
+  const filters = parseBookmarkFiltersFromUrl(tab?.url);
+  if (filters === null) return;
+  const normalizedTag = normalizeTagForType(
+    filters.tagName,
+    filters.bookmarkType,
+  );
+  void updateBookmarkFilters({
+    tagName: normalizedTag,
+    bookmarkType: filters.bookmarkType,
+  });
 };
 
 const showBadge = (text: string, bgColor?: string) =>
@@ -151,14 +178,21 @@ const buildStats = async (
   userId: string,
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
-  const total = await fetchTotalBookmarks(userId, tagName, visibility);
+  const total = await fetchTotalBookmarks(
+    userId,
+    tagName,
+    visibility,
+    bookmarkType,
+  );
   return {
     userId,
     total,
     perPage: DEFAULT_BOOKMARKS_PER_PAGE,
     tagName,
     visibility,
+    bookmarkType,
     updatedAt: Date.now(),
   };
 };
@@ -166,17 +200,28 @@ const buildStats = async (
 const ensureBookmarkStats = async (
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
   const cachedUser = await getSessionUser();
   const cachedUserId = cachedUser?.userId ?? null;
   const resolvedUserId = cachedUserId ?? (await resolveUserIdFromRedirect());
 
-  const stored = await getBookmarkStats(resolvedUserId, tagName, visibility);
+  const stored = await getBookmarkStats(
+    resolvedUserId,
+    tagName,
+    visibility,
+    bookmarkType,
+  );
   if (stored?.userId === resolvedUserId) {
     return stored;
   }
 
-  const stats = await buildStats(resolvedUserId, tagName, visibility);
+  const stats = await buildStats(
+    resolvedUserId,
+    tagName,
+    visibility,
+    bookmarkType,
+  );
   await setBookmarkStats(stats);
   if (!cachedUserId) {
     await setSessionUser(resolvedUserId);
@@ -187,14 +232,20 @@ const ensureBookmarkStats = async (
 const fetchRandomWorkId = async (
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
-  const stats = await ensureBookmarkStats(tagName, visibility);
+  const stats = await ensureBookmarkStats(tagName, visibility, bookmarkType);
 
   const perPage = Math.max(1, stats.perPage || DEFAULT_BOOKMARKS_PER_PAGE);
   const total =
     stats.total && stats.total > 0
       ? stats.total
-      : await fetchTotalBookmarks(stats.userId, stats.tagName, visibility);
+      : await fetchTotalBookmarks(
+          stats.userId,
+          stats.tagName,
+          visibility,
+          bookmarkType,
+        );
   const numPages = Math.max(1, Math.ceil(total / perPage));
   const pageIndex = Math.floor(Math.random() * numPages);
 
@@ -204,8 +255,10 @@ const fetchRandomWorkId = async (
     perPage * pageIndex,
     perPage,
     visibility,
+    bookmarkType,
   );
-  const works = data.body?.works ?? [];
+
+  const bookmarkItems = extractBookmarkItems(data.body);
   const latestTotal = data.body?.total;
   if (typeof latestTotal === 'number' && !Number.isNaN(latestTotal)) {
     if (latestTotal !== stats.total) {
@@ -218,10 +271,12 @@ const fetchRandomWorkId = async (
     }
   }
   const recentWorkIds = await getRecentWorkIds();
-  const unseen = works.filter((work) => !recentWorkIds.includes(work.id));
-  const candidateWorks = unseen.length > 0 ? unseen : works;
-  const randomWork = pickRandomWork(candidateWorks);
-  recentWorkIds.push(String(randomWork.id));
+  const unseen = bookmarkItems.filter(
+    (work) => !recentWorkIds.includes(`${bookmarkType}:${work.id}`),
+  );
+  const candidateWorks = unseen.length > 0 ? unseen : bookmarkItems;
+  const randomWork = pickRandomItem(candidateWorks);
+  recentWorkIds.push(`${bookmarkType}:${String(randomWork.id)}`);
   if (recentWorkIds.length > RECENT_HISTORY_LIMIT) {
     recentWorkIds.splice(0, recentWorkIds.length - RECENT_HISTORY_LIMIT);
   }
@@ -289,17 +344,19 @@ const trackRandomJumpResult = (
 const handleJumpRequestWithTracking = async (
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
   trigger: JumpTrigger,
 ) => {
-  trackRandomJumpAttempt(trigger, visibility, tagName);
+  const normalizedTag = normalizeTagForType(tagName, bookmarkType);
+  trackRandomJumpAttempt(trigger, visibility, normalizedTag);
   try {
-    await handleJumpRequest(tagName, visibility);
-    trackRandomJumpResult(trigger, visibility, tagName, 'success');
+    await handleJumpRequest(normalizedTag, visibility, bookmarkType);
+    trackRandomJumpResult(trigger, visibility, normalizedTag, 'success');
   } catch (error) {
     trackRandomJumpResult(
       trigger,
       visibility,
-      tagName,
+      normalizedTag,
       'failure',
       classifyJumpError(error),
     );
@@ -337,6 +394,7 @@ const handlePopupAnalyticsEvent = (
 const handleJumpRequest = async (
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
   const tab = await queryActiveTab();
   if (!tab) {
@@ -346,9 +404,43 @@ const handleJumpRequest = async (
     throw new Error('Open a Pixiv tab first.');
   }
 
-  const workId = await fetchRandomWorkId(tagName, visibility);
-  await navigateToWork(tab.id, workId);
+  const workId = await fetchRandomWorkId(tagName, visibility, bookmarkType);
+  await navigateToWork(tab.id, workId, bookmarkType);
   await showBadge('🚀');
+};
+
+const parseItemId = (item: unknown): string | null => {
+  if (!item || typeof item !== 'object') return null;
+  const record = item as Record<string, unknown>;
+  const idCandidate =
+    record.id ??
+    record.illustId ??
+    record.novelId ??
+    record.collectionId ??
+    null;
+  if (typeof idCandidate === 'number') {
+    return String(idCandidate);
+  }
+  if (typeof idCandidate === 'string') {
+    return idCandidate;
+  }
+  return null;
+};
+
+const extractBookmarkItems = (body: unknown): Array<{ id: string }> => {
+  if (!body || typeof body !== 'object') {
+    return [];
+  }
+  const raw = body as Record<string, unknown>;
+  const works = Array.isArray(raw.works)
+    ? raw.works
+    : Array.isArray(raw.bookmarks)
+      ? raw.bookmarks
+      : [];
+  return works
+    .map((work) => parseItemId(work))
+    .filter((id): id is string => Boolean(id))
+    .map((id) => ({ id }));
 };
 
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
@@ -373,7 +465,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     message?.trigger === 'keyboard_shortcut'
       ? 'keyboard_shortcut'
       : 'popup_button';
-  handleJumpRequestWithTracking(message.tagName ?? '', visibility, trigger)
+  const bookmarkType = normalizeBookmarkType(message.bookmarkType);
+  handleJumpRequestWithTracking(
+    message.tagName ?? '',
+    visibility,
+    bookmarkType,
+    trigger,
+  )
     .then(() => sendResponse({ ok: true }))
     .catch((error) => {
       const messageText =
@@ -395,10 +493,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   resolveUserIdFromRedirect()
     .then(async (userId) => {
       const filters = await getBookmarkFilters();
+      const normalizedTag = normalizeTagForType(
+        filters.tagName,
+        filters.bookmarkType,
+      );
       const stats = await buildStats(
         userId,
-        filters.tagName,
+        normalizedTag,
         filters.visibility,
+        filters.bookmarkType,
       );
       await setBookmarkStats(stats);
       await setSessionUser(userId);
@@ -424,6 +527,7 @@ chrome.commands.onCommand.addListener((command) => {
       await handleJumpRequestWithTracking(
         filters.tagName,
         filters.visibility,
+        filters.bookmarkType,
         'keyboard_shortcut',
       );
     } catch (error) {

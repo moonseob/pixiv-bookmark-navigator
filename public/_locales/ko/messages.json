@@ -51,13 +51,25 @@
     "message": "미분류"
   },
   "main_visibility": {
-    "message": "공개여부"
+    "message": "공개 설정"
   },
   "main_visibility_public": {
     "message": "공개"
   },
   "main_visibility_private": {
     "message": "비공개"
+  },
+  "main_bookmark_type": {
+    "message": "북마크 유형"
+  },
+  "main_bookmark_type_artworks": {
+    "message": "일러스트・만화"
+  },
+  "main_bookmark_type_novels": {
+    "message": "소설"
+  },
+  "main_bookmark_type_collections": {
+    "message": "컬렉션"
   },
   "profile_please_login": {
     "message": "로그인해주세요"

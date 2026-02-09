@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { BookmarkType } from '@/pixiv/bookmarkType';
 import type { BookmarkVisibility } from '@/pixiv/bookmarkVisibility';
 import { queryActiveTab, sendMessage } from '@/pixiv/chrome';
 import { isPixivBookmarksUrl } from '@/pixiv/urls';
@@ -17,6 +18,7 @@ export const useRandomJump = (
   isLoggedIn: boolean,
   tagName: string,
   visibility: BookmarkVisibility,
+  bookmarkType: BookmarkType,
 ) => {
   const [isJumping, setIsJumping] = useState(false);
 
@@ -36,8 +38,9 @@ export const useRandomJump = (
       const response = await sendMessage<JumpResponse>({
         type: ExtensionMessageType.RandomRequest,
         trigger: 'popup_button',
-        tagName,
+        tagName: bookmarkType === 'collections' ? '' : tagName,
         visibility,
+        bookmarkType,
       });
       if (!response.ok) {
         throw new Error(response.error ?? 'Failed to jump.');

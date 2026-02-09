@@ -1,3 +1,4 @@
+import { type BookmarkType, normalizeBookmarkType } from '@/pixiv/bookmarkType';
 import {
   type BookmarkVisibility,
   normalizeBookmarkVisibility,
@@ -8,12 +9,14 @@ const STORAGE_KEY = 'pixivBookmarkFilters';
 export type BookmarkFiltersState = {
   tagName: string;
   visibility: BookmarkVisibility;
+  bookmarkType: BookmarkType;
   updatedAt: number;
 };
 
 const defaultState: BookmarkFiltersState = {
   tagName: '',
   visibility: 'show',
+  bookmarkType: 'artworks',
   updatedAt: 0,
 };
 
@@ -22,6 +25,7 @@ const normalizeFiltersState = (
 ): BookmarkFiltersState => ({
   tagName: typeof value?.tagName === 'string' ? value.tagName : '',
   visibility: normalizeBookmarkVisibility(value?.visibility),
+  bookmarkType: normalizeBookmarkType(value?.bookmarkType),
   updatedAt: typeof value?.updatedAt === 'number' ? value.updatedAt : 0,
 });
 
@@ -44,6 +48,7 @@ export const getBookmarkFilters = () =>
         if (
           normalized.tagName !== normalizedValue.tagName ||
           normalized.visibility !== normalizedValue.visibility ||
+          normalized.bookmarkType !== normalizedValue.bookmarkType ||
           normalized.updatedAt !== normalizedValue.updatedAt
         ) {
           chrome.storage.session.set({ [STORAGE_KEY]: normalized });
@@ -54,6 +59,7 @@ export const getBookmarkFilters = () =>
       const initialState: BookmarkFiltersState = {
         tagName: '',
         visibility: 'show',
+        bookmarkType: 'artworks',
         updatedAt: Date.now(),
       };
       chrome.storage.session.set({ [STORAGE_KEY]: initialState }, () => {

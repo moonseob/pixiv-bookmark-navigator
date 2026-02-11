@@ -133,5 +133,11 @@
   },
   "status_failed_remove": {
     "message": "ブックマークの削除に失敗しました。"
+  },
+  "main_remove_bookmark": {
+    "message": "ブックマーク削除"
+  },
+  "main_remove_bookmark_done": {
+    "message": "削除済み"
   }
 }

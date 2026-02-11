@@ -1,6 +1,4 @@
-import { Button } from '@charcoal-ui/react';
 import { useState } from 'react';
-import styled from 'styled-components';
 import AppBar from '@/components/AppBar';
 import { t } from '@/shared/i18n';
 import PixivBlocked from '@/views/PixivBlocked';
@@ -28,21 +26,11 @@ export default function App() {
         <>
           {pixivContext === 'blocked' && <PixivBlocked />}
           {pixivContext === 'checking' && <PixivChecking />}
-          {pixivContext === 'allowed' && <MainPage />}
+          {pixivContext === 'allowed' && (
+            <MainPage onOpenHelp={() => setView('help')} />
+          )}
         </>
-      )}
-
-      {view !== 'help' && (
-        <StyledButton onClick={() => setView('help')}>
-          {t('app_bar_title_help')}
-        </StyledButton>
       )}
     </div>
   );
 }
-
-const StyledButton = styled(Button)`
-  width: auto;
-  box-sizing: border-box;
-  margin: 0 8px 8px;
-`;

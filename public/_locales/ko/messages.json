@@ -133,5 +133,11 @@
   },
   "status_failed_remove": {
     "message": "북마크 삭제에 실패했습니다."
+  },
+  "main_remove_bookmark": {
+    "message": "북마크 삭제"
+  },
+  "main_remove_bookmark_done": {
+    "message": "삭제됨"
   }
 }

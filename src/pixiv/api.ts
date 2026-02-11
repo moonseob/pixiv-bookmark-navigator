@@ -1,4 +1,8 @@
-import { fetchArtworkPageData, fetchWithCsrfToken } from '@/pixiv/auth';
+import {
+  fetchArtworkPageData,
+  fetchWithCsrfToken,
+  getCsrfTokenFromHtml,
+} from '@/pixiv/auth';
 import type { BookmarkType } from '@/pixiv/bookmarkType';
 import type { BookmarkVisibility } from '@/pixiv/bookmarkVisibility';
 import type { UserProfile } from '@/storage/userProfile';
@@ -99,8 +103,14 @@ export const fetchBookmarkInfoForArtwork = async (
 
 export const removeBookmark = async (workId: string, info?: BookmarkInfo) => {
   console.log('[bookmark-remove] start', { workId });
-  const { csrfToken, bookmarkId } =
+  const { csrfToken: rawCsrfToken, bookmarkId } =
     info ?? (await fetchArtworkPageData(workId));
+  let csrfToken = rawCsrfToken;
+  if (!csrfToken) {
+    csrfToken = await getCsrfTokenFromHtml(
+      'https://www.pixiv.net/bookmark.php',
+    ).catch(() => null);
+  }
   console.log('[bookmark-remove] page data', {
     hasToken: Boolean(csrfToken),
     bookmarkId,

@@ -98,11 +98,43 @@ const findBookmarkIdFromState = (
 };
 
 export const fetchArtworkPageData = async (workId: string) => {
+  const bookmarkPageToken = await getCsrfTokenFromHtml(
+    'https://www.pixiv.net/bookmark.php',
+  ).catch(() => null);
+  let csrfToken: string | null = bookmarkPageToken;
+
+  const ajaxResponse = await fetch(
+    `https://www.pixiv.net/ajax/illust/${workId}`,
+    { credentials: 'include' },
+  );
+  if (!ajaxResponse.ok && ajaxResponse.status !== 404) {
+    throw new Error('Failed to load artwork details.');
+  }
+  const ajaxData = ajaxResponse.ok
+    ? ((await ajaxResponse.json()) as {
+        body?: { bookmarkData?: { id?: string | number | null } | null };
+      })
+    : null;
+  const ajaxBookmarkId = ajaxData?.body?.bookmarkData?.id;
+  if (ajaxBookmarkId != null) {
+    return {
+      csrfToken,
+      bookmarkId: String(ajaxBookmarkId),
+    };
+  }
+
   const url = `https://www.pixiv.net/artworks/${workId}`;
   const response = await fetch(url, { credentials: 'include' });
-  if (!response.ok) {
+  if (!response.ok && response.status !== 404) {
     throw new Error('Failed to load pixiv page.');
   }
+  if (!response.ok) {
+    return {
+      csrfToken,
+      bookmarkId: null,
+    };
+  }
+
   const html = await response.text();
   const nextData = parseNextData(html);
   const tokenFromState = nextData
@@ -113,27 +145,11 @@ export const fetchArtworkPageData = async (workId: string) => {
   const bookmarkId = state ? findBookmarkIdFromState(state, workId) : null;
   const metaMatch = html.match(/name="csrf-token" content="([^"]+)"/);
   const tokenFromMeta = metaMatch?.[1] ?? null;
-  const csrfToken = tokenFromState ?? tokenFromNext ?? tokenFromMeta;
-  if (bookmarkId) {
-    return {
-      csrfToken,
-      bookmarkId,
-    };
-  }
-  const ajaxResponse = await fetch(
-    `https://www.pixiv.net/ajax/illust/${workId}`,
-    { credentials: 'include' },
-  );
-  if (!ajaxResponse.ok) {
-    throw new Error('Failed to load artwork details.');
-  }
-  const ajaxData = (await ajaxResponse.json()) as {
-    body?: { bookmarkData?: { id?: string | number | null } | null };
-  };
-  const ajaxBookmarkId = ajaxData.body?.bookmarkData?.id;
+  csrfToken = csrfToken ?? tokenFromState ?? tokenFromNext ?? tokenFromMeta;
+
   return {
     csrfToken,
-    bookmarkId: ajaxBookmarkId == null ? null : String(ajaxBookmarkId),
+    bookmarkId,
   };
 };
 

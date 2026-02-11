@@ -4,7 +4,7 @@ import {
   DropdownSelector,
   SegmentedControl,
 } from '@charcoal-ui/react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import BookmarkTagFilterStatus from '@/components/BookmarkTagFilterStatus';
 import {
@@ -17,13 +17,14 @@ import {
 import ProfileCard from '@/components/ProfileCard';
 import type { BookmarkType } from '@/pixiv/bookmarkType';
 import { trackPopupAnalytics } from '@/popup/analytics';
+import { useBookmarkCleanup } from '@/popup/hooks/useBookmarkCleanup';
 import { useBookmarkFilters } from '@/popup/hooks/useBookmarkFilters';
 import { useLoginStatus } from '@/popup/hooks/useLoginStatus';
 import { useRandomJump } from '@/popup/hooks/useRandomJump';
 import { useUserProfile } from '@/popup/hooks/useUserProfile';
 import { t } from '@/shared/i18n';
 
-export default function MainPage() {
+export default function MainPage({ onOpenHelp }: { onOpenHelp: () => void }) {
   const {
     authStatus,
     refresh: refreshLoginStatus,
@@ -53,17 +54,19 @@ export default function MainPage() {
     clearTag,
   } = useBookmarkFilters(userId);
   const [isTagHelpOpen, setIsTagHelpOpen] = useState(false);
+  const noopSetStatus = useCallback(() => {}, []);
 
-  // const {
-  //   currentWorkId,
-  //   isOnArtworkPage,
-  //   isRemovingBookmark,
-  //   isRemovalBlocked,
-  //   handleRemoveBookmark,
-  // } = useBookmarkCleanup(setStatus, isLoggedIn);
+  const {
+    isOnArtworkPage,
+    isRemovingBookmark,
+    isRemovalBlocked,
+    hasCachedBookmarkId,
+    isRemoved,
+    handleRemoveBookmark,
+  } = useBookmarkCleanup(isLoggedIn, userId);
 
   const { isJumping, handleJump } = useRandomJump(
-    () => {},
+    noopSetStatus,
     '',
     isLoggedIn,
     tagName,
@@ -180,6 +183,30 @@ export default function MainPage() {
       >
         {isJumping ? t('main_please_wait') : t('main_random_bookmark')}
       </StyledPrimaryButton>
+      <ActionDivider />
+      <SecondaryActionRow>
+        <StyledRemoveButton
+          variant='Default'
+          data-removed={isRemoved}
+          disabled={
+            isRemovingBookmark ||
+            !isLoggedIn ||
+            !isOnArtworkPage ||
+            isRemovalBlocked ||
+            !hasCachedBookmarkId
+          }
+          onClick={() => {
+            void handleRemoveBookmark();
+          }}
+        >
+          <pixiv-icon name={isRemoved ? '24/Check' : '24/Trash'} />
+          {isRemoved ? t('main_remove_bookmark_done') : t('main_remove_bookmark')}
+        </StyledRemoveButton>
+        <StyledHelpButton variant='Default' onClick={onOpenHelp}>
+          <pixiv-icon name='24/Info' />
+          {t('app_bar_title_help')}
+        </StyledHelpButton>
+      </SecondaryActionRow>
     </>
   );
 }
@@ -190,7 +217,79 @@ const isBookmarkType = (value: string): value is BookmarkType =>
 const StyledPrimaryButton = styled(Button)`
   width: auto;
   box-sizing: border-box;
-  margin: 8px;
+  margin: 8px 8px 4px;
+`;
+
+const ActionDivider = styled.div`
+  margin: 0 8px 8px;
+  border-top: 1px solid var(--charcoal-surface3);
+  opacity: 0.8;
+`;
+
+const SecondaryActionRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin: 0 8px 8px;
+`;
+
+const StyledRemoveButton = styled(Button)`
+  flex: 1.25 1 0%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  && {
+    background-color: rgba(195, 47, 47, 0.14);
+    border-color: rgba(195, 47, 47, 0.3);
+    color: rgb(150, 31, 31);
+  }
+  &[data-removed='true'] {
+    background-color: var(--charcoal-surface3);
+    border-color: var(--charcoal-surface3);
+    color: var(--charcoal-text3);
+  }
+
+  &&:hover:not(:disabled) {
+    background-color: rgba(195, 47, 47, 0.22);
+    border-color: rgba(195, 47, 47, 0.45);
+  }
+  &[data-removed='true']:hover:not(:disabled) {
+    background-color: var(--charcoal-surface3);
+    border-color: var(--charcoal-surface3);
+  }
+
+  &&:disabled {
+    opacity: 0.7;
+  }
+  pixiv-icon {
+    --size: 14px;
+  }
+`;
+
+const StyledHelpButton = styled(Button)`
+  flex: 0.95 1 0%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pixiv-icon {
+    --size: 14px;
+  }
 `;
 
 const StyledSurface = styled.div`

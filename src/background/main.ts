@@ -20,6 +20,7 @@ import {
   getBookmarkFilters,
   updateBookmarkFilters,
 } from '@/storage/bookmarkFilters';
+import { setCachedBookmarkId } from '@/storage/bookmarkRemovalCache';
 import { getBookmarkStats, setBookmarkStats } from '@/storage/bookmarkStats';
 import { getRecentWorkIds, setRecentWorkIds } from '@/storage/recentHistory';
 import { getSessionUser, setSessionUser } from '@/storage/sessionUser';
@@ -279,6 +280,13 @@ const fetchRandomWorkId = async (
     recentWorkIds.splice(0, recentWorkIds.length - RECENT_HISTORY_LIMIT);
   }
   await setRecentWorkIds(recentWorkIds);
+  if (bookmarkType === 'artworks' && randomWork.bookmarkId) {
+    await setCachedBookmarkId(
+      stats.userId,
+      String(randomWork.id),
+      randomWork.bookmarkId,
+    );
+  }
   return randomWork.id;
 };
 
@@ -425,7 +433,32 @@ const parseItemId = (item: unknown): string | null => {
   return null;
 };
 
-const extractBookmarkItems = (body: unknown): Array<{ id: string }> => {
+const parseBookmarkId = (item: unknown): string | null => {
+  if (!item || typeof item !== 'object') return null;
+  const record = item as Record<string, unknown>;
+  const bookmarkData = record.bookmarkData;
+  if (bookmarkData && typeof bookmarkData === 'object') {
+    const bookmarkRecord = bookmarkData as Record<string, unknown>;
+    const bookmarkId = bookmarkRecord.id;
+    if (typeof bookmarkId === 'string') {
+      return bookmarkId;
+    }
+    if (typeof bookmarkId === 'number') {
+      return String(bookmarkId);
+    }
+  }
+  if (typeof record.bookmarkId === 'string') {
+    return record.bookmarkId;
+  }
+  if (typeof record.bookmarkId === 'number') {
+    return String(record.bookmarkId);
+  }
+  return null;
+};
+
+const extractBookmarkItems = (
+  body: unknown,
+): Array<{ id: string; bookmarkId: string | null }> => {
   if (!body || typeof body !== 'object') {
     return [];
   }
@@ -436,9 +469,14 @@ const extractBookmarkItems = (body: unknown): Array<{ id: string }> => {
       ? raw.bookmarks
       : [];
   return works
-    .map((work) => parseItemId(work))
-    .filter((id): id is string => Boolean(id))
-    .map((id) => ({ id }));
+    .map((work) => {
+      const id = parseItemId(work);
+      if (!id) return null;
+      return { id, bookmarkId: parseBookmarkId(work) };
+    })
+    .filter((item): item is { id: string; bookmarkId: string | null } =>
+      Boolean(item),
+    );
 };
 
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
